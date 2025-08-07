@@ -14,7 +14,170 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          appointment_type: string
+          created_at: string
+          doctor_id: string
+          id: string
+          notes: string | null
+          patient_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          appointment_type?: string
+          created_at?: string
+          doctor_id: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          appointment_type?: string
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      doctors: {
+        Row: {
+          availability: string
+          created_at: string
+          experience: string | null
+          gender: string
+          id: string
+          location: string
+          name: string
+          phone: string | null
+          specialization: string
+          updated_at: string
+        }
+        Insert: {
+          availability?: string
+          created_at?: string
+          experience?: string | null
+          gender: string
+          id?: string
+          location: string
+          name: string
+          phone?: string | null
+          specialization: string
+          updated_at?: string
+        }
+        Update: {
+          availability?: string
+          created_at?: string
+          experience?: string | null
+          gender?: string
+          id?: string
+          location?: string
+          name?: string
+          phone?: string | null
+          specialization?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      patients: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      queue: {
+        Row: {
+          check_in_time: string
+          created_at: string
+          estimated_wait_time: string | null
+          id: string
+          patient_id: string
+          priority: string
+          queue_number: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          check_in_time?: string
+          created_at?: string
+          estimated_wait_time?: string | null
+          id?: string
+          patient_id: string
+          priority?: string
+          queue_number: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          check_in_time?: string
+          created_at?: string
+          estimated_wait_time?: string | null
+          id?: string
+          patient_id?: string
+          priority?: string
+          queue_number?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "queue_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

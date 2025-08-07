@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Queue from "./pages/Queue";
+import Appointments from "./pages/Appointments";
+import Doctors from "./pages/Doctors";
 import NotFound from "./pages/NotFound";
 
 // Protected Route Component
@@ -36,26 +38,12 @@ const App = () => (
           } />
           <Route path="/appointments" element={
             <ProtectedRoute>
-              <div className="flex h-screen bg-background">
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Appointments</h1>
-                    <p className="text-muted-foreground">Coming soon...</p>
-                  </div>
-                </div>
-              </div>
+              <Appointments />
             </ProtectedRoute>
           } />
           <Route path="/doctors" element={
             <ProtectedRoute>
-              <div className="flex h-screen bg-background">
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold mb-4">Doctors</h1>
-                    <p className="text-muted-foreground">Coming soon...</p>
-                  </div>
-                </div>
-              </div>
+              <Doctors />
             </ProtectedRoute>
           } />
           <Route path="/patients" element={

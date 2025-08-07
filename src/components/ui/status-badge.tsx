@@ -10,6 +10,7 @@ const statusBadgeVariants = cva(
         "in-progress": "bg-warning/10 text-warning border border-warning/20",
         completed: "bg-success/10 text-success border border-success/20",
         urgent: "bg-urgent/10 text-urgent border border-urgent/20",
+        scheduled: "bg-primary/10 text-primary border border-primary/20",
         booked: "bg-primary/10 text-primary border border-primary/20",
         cancelled: "bg-muted text-muted-foreground border border-border",
       },
