@@ -2,41 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Medical Front Desk System Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Base colors - Medical theme */
+    --background: 218 25% 98%;
+    --foreground: 215 25% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Medical Blue */
+    --primary: 213 94% 56%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 213 94% 68%;
+    --primary-dark: 213 94% 44%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - Soft Gray */
+    --secondary: 215 16% 97%;
+    --secondary-foreground: 215 25% 26%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Medical Status Colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --danger: 0 84% 60%;
+    --danger-foreground: 0 0% 100%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Queue Status Colors */
+    --waiting: 213 94% 56%;
+    --in-progress: 38 92% 50%;
+    --completed: 142 76% 36%;
+    --urgent: 0 84% 60%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --muted: 215 16% 96%;
+    --muted-foreground: 215 16% 46%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --accent: 213 100% 96%;
+    --accent-foreground: 213 94% 56%;
 
-    --radius: 0.5rem;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 20% 90%;
+    --input: 215 20% 94%;
+    --ring: 213 94% 56%;
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 
