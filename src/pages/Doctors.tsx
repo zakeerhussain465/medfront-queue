@@ -38,7 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useDoctors, useCreateDoctor, useUpdateDoctor, Doctor } from "@/hooks/useSupabase";
+import { useDoctors, useCreateDoctor, useUpdateDoctor, type Doctor } from "@/hooks/useSupabase";
 
 const Doctors = () => {
   const { toast } = useToast();
