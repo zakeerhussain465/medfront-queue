@@ -38,92 +38,62 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-
-interface Doctor {
-  id: string;
-  name: string;
-  specialization: string;
-  gender: "male" | "female";
-  location: string;
-  availability: "available" | "busy" | "off-duty";
-  experience: string;
-  phone: string;
-  nextAvailable: string;
-}
+import { useDoctors, useCreateDoctor, useUpdateDoctor, Doctor } from "@/hooks/useSupabase";
 
 const Doctors = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [doctors, setDoctors] = useState<Doctor[]>([
-    {
-      id: "1",
-      name: "Dr. Sarah Wilson",
-      specialization: "Cardiology",
-      gender: "female",
-      location: "Room 101",
-      availability: "available",
-      experience: "15 years",
-      phone: "(555) 111-2222",
-      nextAvailable: "Now"
-    },
-    {
-      id: "2",
-      name: "Dr. Michael Johnson",
-      specialization: "Pediatrics",
-      gender: "male",
-      location: "Room 203",
-      availability: "busy",
-      experience: "12 years",
-      phone: "(555) 333-4444",
-      nextAvailable: "2:30 PM"
-    },
-    {
-      id: "3",
-      name: "Dr. Lisa Chen",
-      specialization: "Dermatology",
-      gender: "female",
-      location: "Room 105",
-      availability: "available",
-      experience: "8 years",
-      phone: "(555) 555-6666",
-      nextAvailable: "Now"
-    },
-    {
-      id: "4",
-      name: "Dr. James Miller",
-      specialization: "Orthopedics",
-      gender: "male",
-      location: "Room 301",
-      availability: "off-duty",
-      experience: "20 years",
-      phone: "(555) 777-8888",
-      nextAvailable: "Tomorrow 9:00 AM"
-    },
-    {
-      id: "5",
-      name: "Dr. Amanda Rodriguez",
-      specialization: "Neurology",
-      gender: "female",
-      location: "Room 205",
-      availability: "available",
-      experience: "10 years",
-      phone: "(555) 999-0000",
-      nextAvailable: "Now"
+  const [formData, setFormData] = useState({
+    name: "",
+    specialization: "",
+    gender: "" as "male" | "female",
+    location: "",
+    phone: "",
+    experience: ""
+  });
+
+  const { data: doctors = [], isLoading } = useDoctors();
+  const createDoctor = useCreateDoctor();
+  const updateDoctor = useUpdateDoctor();
+
+  const handleCreateDoctor = () => {
+    if (!formData.name || !formData.specialization || !formData.gender || !formData.location) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
     }
-  ]);
+
+    createDoctor.mutate({
+      name: formData.name,
+      specialization: formData.specialization,
+      gender: formData.gender,
+      location: formData.location,
+      phone: formData.phone || "",
+      experience: formData.experience || "",
+      availability: "available"
+    }, {
+      onSuccess: () => {
+        setIsDialogOpen(false);
+        setFormData({
+          name: "",
+          specialization: "",
+          gender: "" as "male" | "female",
+          location: "",
+          phone: "",
+          experience: ""
+        });
+      }
+    });
+  };
 
   const updateDoctorAvailability = (doctorId: string, newAvailability: Doctor["availability"]) => {
-    setDoctors(prev => 
-      prev.map(doctor => 
-        doctor.id === doctorId 
-          ? { ...doctor, availability: newAvailability }
-          : doctor
-      )
-    );
-    toast({
-      title: "Availability Updated",
-      description: `Doctor availability changed to ${newAvailability.replace("-", " ")}`,
+    updateDoctor.mutate({
+      id: doctorId,
+      updates: { availability: newAvailability }
     });
   };
 
@@ -255,23 +225,29 @@ const Doctors = () => {
                     <Label htmlFor="doctor-name" className="text-right">
                       Name
                     </Label>
-                    <Input id="doctor-name" placeholder="Dr. John Doe" className="col-span-3" />
+                    <Input 
+                      id="doctor-name" 
+                      placeholder="Dr. John Doe" 
+                      className="col-span-3"
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="specialization" className="text-right">
                       Specialization
                     </Label>
-                    <Select>
+                    <Select value={formData.specialization} onValueChange={(value) => setFormData(prev => ({ ...prev, specialization: value }))}>
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select specialization" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cardiology">Cardiology</SelectItem>
-                        <SelectItem value="pediatrics">Pediatrics</SelectItem>
-                        <SelectItem value="dermatology">Dermatology</SelectItem>
-                        <SelectItem value="orthopedics">Orthopedics</SelectItem>
-                        <SelectItem value="neurology">Neurology</SelectItem>
-                        <SelectItem value="general">General Medicine</SelectItem>
+                        <SelectItem value="Cardiology">Cardiology</SelectItem>
+                        <SelectItem value="Pediatrics">Pediatrics</SelectItem>
+                        <SelectItem value="Dermatology">Dermatology</SelectItem>
+                        <SelectItem value="Orthopedics">Orthopedics</SelectItem>
+                        <SelectItem value="Neurology">Neurology</SelectItem>
+                        <SelectItem value="General Medicine">General Medicine</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -279,7 +255,7 @@ const Doctors = () => {
                     <Label htmlFor="gender" className="text-right">
                       Gender
                     </Label>
-                    <Select>
+                    <Select value={formData.gender} onValueChange={(value: "male" | "female") => setFormData(prev => ({ ...prev, gender: value }))}>
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
@@ -293,24 +269,42 @@ const Doctors = () => {
                     <Label htmlFor="location" className="text-right">
                       Location
                     </Label>
-                    <Input id="location" placeholder="Room 101" className="col-span-3" />
+                    <Input 
+                      id="location" 
+                      placeholder="Room 101" 
+                      className="col-span-3"
+                      value={formData.location}
+                      onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="phone" className="text-right">
                       Phone
                     </Label>
-                    <Input id="phone" placeholder="(555) 123-4567" className="col-span-3" />
+                    <Input 
+                      id="phone" 
+                      placeholder="(555) 123-4567" 
+                      className="col-span-3"
+                      value={formData.phone}
+                      onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                    />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="experience" className="text-right">
                       Experience
                     </Label>
-                    <Input id="experience" placeholder="10 years" className="col-span-3" />
+                    <Input 
+                      id="experience" 
+                      placeholder="10 years" 
+                      className="col-span-3"
+                      value={formData.experience}
+                      onChange={(e) => setFormData(prev => ({ ...prev, experience: e.target.value }))}
+                    />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit" onClick={() => setIsDialogOpen(false)}>
-                    Add Doctor
+                  <Button type="submit" onClick={handleCreateDoctor} disabled={createDoctor.isPending}>
+                    {createDoctor.isPending ? "Adding..." : "Add Doctor"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -324,7 +318,9 @@ const Doctors = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {filteredDoctors.map((doctor) => (
+                {isLoading ? (
+                  <div className="text-center py-8">Loading doctors...</div>
+                ) : filteredDoctors.map((doctor) => (
                   <div
                     key={doctor.id}
                     className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
@@ -361,7 +357,7 @@ const Doctors = () => {
                         </Badge>
                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          <span>Next: {doctor.nextAvailable}</span>
+                          <span>ID: {doctor.id.slice(0, 8)}</span>
                         </div>
                       </div>
                       

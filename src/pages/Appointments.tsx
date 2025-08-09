@@ -38,88 +38,71 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-
-interface Appointment {
-  id: string;
-  patientName: string;
-  patientPhone: string;
-  doctorName: string;
-  doctorSpecialization: string;
-  date: string;
-  time: string;
-  status: "scheduled" | "completed" | "cancelled" | "in-progress";
-  type: "consultation" | "follow-up" | "urgent";
-}
+import { useAppointments, useCreateAppointment, useUpdateAppointment, usePatients, useDoctors } from "@/hooks/useSupabase";
 
 const Appointments = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: "1",
-      patientName: "John Smith",
-      patientPhone: "(555) 123-4567",
-      doctorName: "Dr. Sarah Wilson",
-      doctorSpecialization: "Cardiology",
-      date: "2024-01-15",
-      time: "09:00 AM",
-      status: "scheduled",
-      type: "consultation"
-    },
-    {
-      id: "2",
-      patientName: "Emily Davis",
-      patientPhone: "(555) 234-5678",
-      doctorName: "Dr. Michael Johnson",
-      doctorSpecialization: "Pediatrics",
-      date: "2024-01-15",
-      time: "10:30 AM",
-      status: "in-progress",
-      type: "follow-up"
-    },
-    {
-      id: "3",
-      patientName: "Robert Brown",
-      patientPhone: "(555) 345-6789",
-      doctorName: "Dr. Lisa Chen",
-      doctorSpecialization: "Dermatology",
-      date: "2024-01-15",
-      time: "02:00 PM",
-      status: "completed",
-      type: "consultation"
-    },
-    {
-      id: "4",
-      patientName: "Amanda Taylor",
-      patientPhone: "(555) 456-7890",
-      doctorName: "Dr. James Miller",
-      doctorSpecialization: "Orthopedics",
-      date: "2024-01-16",
-      time: "11:00 AM",
-      status: "scheduled",
-      type: "urgent"
-    }
-  ]);
+  const [formData, setFormData] = useState({
+    patient_id: "",
+    doctor_id: "",
+    appointment_date: "",
+    appointment_time: "",
+    appointment_type: "consultation" as "consultation" | "follow-up" | "urgent",
+    notes: ""
+  });
 
-  const updateAppointmentStatus = (appointmentId: string, newStatus: Appointment["status"]) => {
-    setAppointments(prev => 
-      prev.map(appointment => 
-        appointment.id === appointmentId 
-          ? { ...appointment, status: newStatus }
-          : appointment
-      )
-    );
-    toast({
-      title: "Appointment Updated",
-      description: `Appointment status changed to ${newStatus.replace("-", " ")}`,
+  const { data: appointments = [], isLoading } = useAppointments();
+  const { data: patients = [] } = usePatients();
+  const { data: doctors = [] } = useDoctors();
+  const createAppointment = useCreateAppointment();
+  const updateAppointment = useUpdateAppointment();
+
+  const handleCreateAppointment = () => {
+    if (!formData.patient_id || !formData.doctor_id || !formData.appointment_date || !formData.appointment_time) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createAppointment.mutate({
+      patient_id: formData.patient_id,
+      doctor_id: formData.doctor_id,
+      appointment_date: formData.appointment_date,
+      appointment_time: formData.appointment_time,
+      appointment_type: formData.appointment_type,
+      status: "scheduled",
+      notes: formData.notes
+    }, {
+      onSuccess: () => {
+        setIsDialogOpen(false);
+        setFormData({
+          patient_id: "",
+          doctor_id: "",
+          appointment_date: "",
+          appointment_time: "",
+          appointment_type: "consultation",
+          notes: ""
+        });
+      }
+    });
+  };
+
+  const updateAppointmentStatus = (appointmentId: string, newStatus: "scheduled" | "completed" | "cancelled" | "in-progress") => {
+    updateAppointment.mutate({
+      id: appointmentId,
+      updates: { status: newStatus }
     });
   };
 
   const filteredAppointments = appointments.filter(appointment =>
-    appointment.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    appointment.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    appointment.doctorSpecialization.toLowerCase().includes(searchTerm.toLowerCase())
+    appointment.patients?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    appointment.doctors?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    appointment.doctors?.specialization.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const appointmentStats = {
@@ -215,30 +198,36 @@ const Appointments = () => {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="patient-name" className="text-right">
-                      Patient Name
+                    <Label htmlFor="patient" className="text-right">
+                      Patient
                     </Label>
-                    <Input id="patient-name" className="col-span-3" />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="patient-phone" className="text-right">
-                      Phone
-                    </Label>
-                    <Input id="patient-phone" className="col-span-3" />
+                    <Select value={formData.patient_id} onValueChange={(value) => setFormData(prev => ({ ...prev, patient_id: value }))}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select a patient" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {patients.map((patient) => (
+                          <SelectItem key={patient.id} value={patient.id}>
+                            {patient.name} - {patient.phone}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="doctor" className="text-right">
                       Doctor
                     </Label>
-                    <Select>
+                    <Select value={formData.doctor_id} onValueChange={(value) => setFormData(prev => ({ ...prev, doctor_id: value }))}>
                       <SelectTrigger className="col-span-3">
                         <SelectValue placeholder="Select a doctor" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="dr-wilson">Dr. Sarah Wilson - Cardiology</SelectItem>
-                        <SelectItem value="dr-johnson">Dr. Michael Johnson - Pediatrics</SelectItem>
-                        <SelectItem value="dr-chen">Dr. Lisa Chen - Dermatology</SelectItem>
-                        <SelectItem value="dr-miller">Dr. James Miller - Orthopedics</SelectItem>
+                        {doctors.map((doctor) => (
+                          <SelectItem key={doctor.id} value={doctor.id}>
+                            {doctor.name} - {doctor.specialization}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -246,18 +235,45 @@ const Appointments = () => {
                     <Label htmlFor="appointment-date" className="text-right">
                       Date
                     </Label>
-                    <Input id="appointment-date" type="date" className="col-span-3" />
+                    <Input 
+                      id="appointment-date" 
+                      type="date" 
+                      className="col-span-3"
+                      value={formData.appointment_date}
+                      onChange={(e) => setFormData(prev => ({ ...prev, appointment_date: e.target.value }))}
+                    />
                   </div>
                   <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="appointment-time" className="text-right">
                       Time
                     </Label>
-                    <Input id="appointment-time" type="time" className="col-span-3" />
+                    <Input 
+                      id="appointment-time" 
+                      type="time" 
+                      className="col-span-3"
+                      value={formData.appointment_time}
+                      onChange={(e) => setFormData(prev => ({ ...prev, appointment_time: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="appointment-type" className="text-right">
+                      Type
+                    </Label>
+                    <Select value={formData.appointment_type} onValueChange={(value: "consultation" | "follow-up" | "urgent") => setFormData(prev => ({ ...prev, appointment_type: value }))}>
+                      <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Select appointment type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="consultation">Consultation</SelectItem>
+                        <SelectItem value="follow-up">Follow-up</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit" onClick={() => setIsDialogOpen(false)}>
-                    Book Appointment
+                  <Button type="submit" onClick={handleCreateAppointment} disabled={createAppointment.isPending}>
+                    {createAppointment.isPending ? "Booking..." : "Book Appointment"}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -271,7 +287,9 @@ const Appointments = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {filteredAppointments.map((appointment) => (
+                {isLoading ? (
+                  <div className="text-center py-8">Loading appointments...</div>
+                ) : filteredAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
                     className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
@@ -282,14 +300,14 @@ const Appointments = () => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-medium">{appointment.patientName}</h3>
-                          {appointment.type === "urgent" && (
+                          <h3 className="font-medium">{appointment.patients?.name}</h3>
+                          {appointment.appointment_type === "urgent" && (
                             <Badge variant="destructive" className="text-xs">Urgent</Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground">{appointment.patientPhone}</p>
+                        <p className="text-sm text-muted-foreground">{appointment.patients?.phone}</p>
                         <p className="text-sm text-muted-foreground">
-                          {appointment.doctorName} - {appointment.doctorSpecialization}
+                          {appointment.doctors?.name} - {appointment.doctors?.specialization}
                         </p>
                       </div>
                     </div>
@@ -298,11 +316,11 @@ const Appointments = () => {
                       <div className="text-right">
                         <div className="flex items-center gap-2 mb-1">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm font-medium">{appointment.date}</span>
+                          <span className="text-sm font-medium">{appointment.appointment_date}</span>
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                           <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground">{appointment.time}</span>
+                          <span className="text-sm text-muted-foreground">{appointment.appointment_time}</span>
                         </div>
                         <StatusBadge variant={appointment.status}>
                           {appointment.status.replace("-", " ")}
